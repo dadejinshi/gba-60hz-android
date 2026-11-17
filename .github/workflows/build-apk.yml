@@ -14,6 +14,9 @@ on:
     branches: [ main ]
     tags: [ 'v*' ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     # 固定 24.04：ubuntu-latest 正在迁往 26.04，Android 工具链在旧镜像上更稳
@@ -78,10 +81,16 @@ jobs:
           ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Rename APK
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p out
-          cp app/build/outputs/apk/debug/app-debug.apk \
-             "out/GBA-60Hz-v${{ github.event.inputs.version_name || github.ref_name }}.apk"
+          VER="${{ github.event.inputs.version_name }}"
+          if [ -z "$VER" ]; then
+            VER="$(sed -n 's/.*versionName *= *"\([^"]*\)".*/\1/p' app/build.gradle.kts | head -1)"
+          fi
+          cp app/build/outputs/apk/debug/app-debug.apk "out/GBA-60Hz-v${VER}.apk"
+          echo "APK_FILE=GBA-60Hz-v${VER}.apk" >> "$GITHUB_ENV"
           ls -lh out/
 
       - name: Upload APK artifact
@@ -91,3 +100,17 @@ jobs:
           path: out/*.apk
           if-no-files-found: error
           retention-days: 90
+
+      # 打 v* 标签时顺便发布 Release：APK 变成免登录的直链，手机点一下就能装
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create "$GITHUB_REF_NAME" "out/${APK_FILE}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "GBA 60Hz ${GITHUB_REF_NAME}" \
+            --notes "GitHub Actions 自动构建（debug 签名，仅供测试安装）。" \
+            --verify-tag
