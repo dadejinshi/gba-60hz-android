@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ 备份规则：仅备份到云端，不备份到设备迁移 -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="external" />
+    </cloud-backup>
+</data-extraction-rules>

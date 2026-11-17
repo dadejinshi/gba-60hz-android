@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 简化的 GBA 掌机剪影作为前景图标 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:scaleX="0.62" android:scaleY="0.62"
+        android:translateX="20.5" android:translateY="20.5">
+        <!-- 机身 -->
+        <path android:fillColor="#FFFFFF"
+            android:pathData="M24,10h60c6,0 10,4 10,10v78c0,6 -4,10 -10,10h-60c-6,0 -10,-4 -10,-10v-78c0,-6 4,-10 10,-10z" />
+        <!-- 屏幕 -->
+        <path android:fillColor="#2D3436"
+            android:pathData="M32,22h44c2,0 4,2 4,4v34c0,2 -2,4 -4,4h-44c-2,0 -4,-2 -4,-4v-34c0,-2 2,-4 4,-4z" />
+        <!-- 左十字键 -->
+        <path android:fillColor="#2D3436" android:pathData="M30,74h8v-6h6v6h8v6h-8v6h-6v-6h-8z" />
+        <!-- 右 AB 键 -->
+        <path android:fillColor="#E17055" android:pathData="M76,76m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+        <path android:fillColor="#E17055" android:pathData="M62,84m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    </group>
+</vector>

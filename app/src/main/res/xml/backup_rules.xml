@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11- 备份规则：ROM/存档较大，排除以免占用备份配额；如需云存档可移除 -->
+<full-backup-content>
+    <exclude domain="root" />
+    <exclude domain="database" />
+    <exclude domain="external" />
+</full-backup-content>
