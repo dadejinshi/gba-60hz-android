@@ -16,7 +16,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # 固定 24.04：ubuntu-latest 正在迁往 26.04，Android 工具链在旧镜像上更稳
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,11 +28,35 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # 不再用 android-actions/setup-android@v3（它已跟不上 runner 的
+      # Node 24 / 新镜像，会在装 SDK 时直接失败）。改为用镜像自带 SDK，
+      # 缺了再自己下 commandline-tools，行为可控。
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          if [ ! -x "$SDK/cmdline-tools/latest/bin/sdkmanager" ]; then
+            echo "预装 SDK 不完整，下载 commandline-tools 到 $HOME/android-sdk"
+            SDK="$HOME/android-sdk"
+            mkdir -p "$SDK/cmdline-tools"
+            curl -fsSL --retry 3 -o /tmp/clt.zip \
+              https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+            unzip -q /tmp/clt.zip -d "$SDK/cmdline-tools"
+            mv "$SDK/cmdline-tools/cmdline-tools" "$SDK/cmdline-tools/latest"
+          fi
+          echo "ANDROID_HOME=$SDK"       >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK"   >> "$GITHUB_ENV"
+          echo "$SDK/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "使用 SDK: $SDK"
 
-      - name: Install Build Tools 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Install platform 35 / build-tools 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager --list_installed | head -20
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
@@ -47,7 +72,9 @@ jobs:
           echo "versionName set to $V"
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Rename APK
         run: |
