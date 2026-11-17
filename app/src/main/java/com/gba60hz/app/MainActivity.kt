@@ -314,7 +314,7 @@ class MainActivity : AppCompatActivity() {
 /** 注入到页面里的 JS 片段（不改动 app.html 源码；桥接对象名保持与 BRIDGE_NAME 一致：GbaNative） */
 private object Js {
     /** 返回键：若设置页/弹窗打开则关闭它们并消费返回键 */
-    const val GO_BACK = """
+    val GO_BACK = """
         (function(){
           try {
             var m = document.getElementById('modal');
@@ -327,12 +327,12 @@ private object Js {
     """.trimIndent()
 
     /** 切后台：触发自动存档（函数存在才调用） */
-    const val PAUSE = """
+    val PAUSE = """
         (function(){ try { if (window.autoSave) autoSave(true); } catch(e){} })()
     """.trimIndent()
 
-    /** 页面加载完成后注入的增强。注意：const val 不能用字符串模板，故桥接名写死为 GbaNative。 */
-    const val INJECT = """
+    /** 页面加载完成后注入的增强。桥接名写死为 GbaNative。 */
+    val INJECT = """
         (function(){
           var N = window.GbaNative;
 

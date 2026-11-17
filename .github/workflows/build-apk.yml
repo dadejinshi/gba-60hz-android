@@ -72,9 +72,26 @@ jobs:
           echo "versionName set to $V"
 
       - name: Build Debug APK
+        shell: bash
         run: |
+          set -o pipefail
           chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+
+      # 临时排障：失败时把日志尾部推到 ci-log 分支，便于免登录查看
+      - name: Publish failure log
+        if: failure()
+        shell: bash
+        run: |
+          set -e
+          git config user.name  "ci-log-bot"
+          git config user.email "ci-log-bot@users.noreply.github.com"
+          { echo "run: $GITHUB_RUN_ID"; echo "commit: $GITHUB_SHA"; echo "---"; } > ci-build-failure.log
+          if [ -f build.log ]; then tail -c 100000 build.log >> ci-build-failure.log; fi
+          git checkout -B ci-log
+          git add -f ci-build-failure.log
+          git commit -m "ci: build failure log for run $GITHUB_RUN_ID"
+          git push -f origin ci-log
 
       - name: Rename APK
         run: |
